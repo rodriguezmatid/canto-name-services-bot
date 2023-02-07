@@ -66,4 +66,4 @@ def log_loop(event_filter, poll_interval):
 block_filter = contract.events.Register.createFilter(fromBlock='latest')
 log_loop(block_filter, 2)
 
-# api_twitter.update_status("hola")
+api_twitter.update_status("hola")
