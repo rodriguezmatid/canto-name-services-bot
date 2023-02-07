@@ -4,6 +4,7 @@ import dotenv as _dotenv
 import os as os
 import time
 import tweepy
+from datetime import datetime
 
 _dotenv.load_dotenv()
 rpc = 'https://canto.gravitychain.io/' # mainnet
@@ -20,7 +21,7 @@ TW_ACCESS_SECRET = os.environ["TWITTER_ACCESS_SECRET"]
 # auth.set_access_token(TW_ACCESS_TOKEN, TW_ACCESS_SECRET)
 
 # api_twitter = tweepy.API(auth)
-
+# api_twitter.verify_credentials()
 # try:
 #     api_twitter.verify_credentials()
 #     print("Authentication OK")
@@ -40,22 +41,22 @@ ycnTestnetAddress = web3.toChecksumAddress('0x4cdc0251c8eb4fd96b8b9acdcf314b969b
 
 # Abi
 with open('./utils/ycn.json', 'r') as f:
-  abi_contract_erc20 = json.load(f)
+  abi_ycn = json.load(f)
 
-contract = web3.eth.contract(address=ycnTestnetAddress, abi=abi_contract_erc20)
+contract = web3.eth.contract(address=ycnMainnetAddress, abi=abi_ycn)
+
+# expiration = datetime.fromtimestamp(contract.functions.getExpiration('vitalik').call())
+# print(expiration)
 
 def handle_event(event):
-    print(event)
-    # try:
-    #     print("From: ", event['address'])
-    #     # print("To: ", event['to'])
-    #     print("From: ", event['topics'][1])
-    #     print("To: ", event['topics'][2])
-    #     print("Transaction Hash: ", event['transactionHash'])
-    #     print("Block Number: ", event['blockNumber'])
-    #     print("\n")
-    # except KeyError:
-    #     print("Could not find expected keys in event:", event)
+    registerDate = datetime.fromtimestamp(event['args']['time'])
+    print("Name: ", event['args']['name'])
+    print("Owner: ", event['args']['owner'])
+    print("Resolves To: ", event['args']['resolvesTo'])
+    print("Timestamp: ", registerDate)
+    print("Transaction Hash: ", event['transactionHash'].hex())
+    print("Block Number: ", event['blockNumber'])
+    print("\n")
 
 def log_loop(event_filter, poll_interval):
     while True:
@@ -63,7 +64,11 @@ def log_loop(event_filter, poll_interval):
             handle_event(event)
             time.sleep(poll_interval)
 
+
+# def log_loop(event_filter, poll_interval):
+#         for event in event_filter.get_all_entries():
+#             handle_event(event)
+#             time.sleep(poll_interval)
+
 block_filter = contract.events.Register.createFilter(fromBlock='latest')
 log_loop(block_filter, 2)
-
-api_twitter.update_status("hola")
