@@ -50,25 +50,27 @@ contract = web3.eth.contract(address=ycnMainnetAddress, abi=abi_ycn)
 
 def handle_event(event):
     registerDate = datetime.fromtimestamp(event['args']['time'])
+    expiration = datetime.fromtimestamp(contract.functions.getExpiration(event['args']['name']).call())
     print("Name: ", event['args']['name'])
     print("Owner: ", event['args']['owner'])
     print("Resolves To: ", event['args']['resolvesTo'])
-    print("Timestamp: ", registerDate)
+    print("Creation date: ", registerDate)
+    print("Expiration date: ", expiration)
     print("Transaction Hash: ", event['transactionHash'].hex())
     print("Block Number: ", event['blockNumber'])
     print("\n")
 
 def log_loop(event_filter, poll_interval):
-    while True:
-        for event in event_filter.get_new_entries():
-            handle_event(event)
-            time.sleep(poll_interval)
-
-
-# def log_loop(event_filter, poll_interval):
-#         for event in event_filter.get_all_entries():
-#             handle_event(event)
-#             time.sleep(poll_interval)
+    try:
+        while True:
+            for event in event_filter.get_new_entries():
+                handle_event(event)
+                time.sleep(poll_interval)
+    except:
+        while True:
+            for event in event_filter.get_new_entries():
+                handle_event(event)
+                time.sleep(poll_interval)
 
 block_filter = contract.events.Register.createFilter(fromBlock='latest')
 log_loop(block_filter, 2)
